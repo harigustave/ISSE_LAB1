@@ -147,12 +147,14 @@ After the new regression reaches its intended red state, identify the public pos
 **Selected red-state evidence:**
 
 ```text
-<Include only the short result/assertion summary needed for your diagnosis.>
+[FAIL] input::overlong_line_recovery_across_calls
+tests/unit/test_input.c:104: Assertion Failed  (second.length == 2)
+second call observed: status RBC_INPUT_LINE, length 0, buffer "" (expected "xy")
 ```
 
 **Diagnosis:**
 
-<!-- Explain the violated postcondition, the stream-state implication, and repair responsibility in 2–4 sentences. Do not describe the patch. -->
+The violated public postcondition is input.h's requirement that `RBC_INPUT_TOO_LONG` means "the complete overlong logical line has been discarded through newline/EOF". The second call returning an empty `RBC_INPUT_LINE` instead of `"xy"` shows the first call left the stream still inside the rejected line, positioned at that line's own terminating newline, which the second call then consumed as a spurious empty line. The postcondition belongs to `rbc_input_read_line` alone: the failing test reaches the defect through only that one public function, with no parser, evaluator, or main involved, so the repair responsibility is localized to the input component (src/input.c), and main.c must not compensate for it.
 
 ### Q5.3 — Why the recovery regression matters
 
