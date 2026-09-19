@@ -69,12 +69,15 @@ Yes: a relocatable object is allowed to call functions defined in other translat
 **Selected evidence:**
 
 ```text
-<Paste only 1–3 symbol/relocation lines that support your explanation.>
+$ nm build/normal/obj/parser.o
+                 U rbc_ast_create_integer
+$ readelf -rW build/normal/obj/parser.o
+00000000000000f5  0000003f00000004 R_X86_64_PLT32  0000000000000000 rbc_ast_create_integer - 4
 ```
 
 **Interpretation:**
 
-<!-- Explain the unresolved information and final-link role in 2–3 sentences. -->
+parser.o already holds the encoded call instruction, but the symbol table marks `rbc_ast_create_integer` as U (used, not defined here), and its 4-byte call operand at .text offset 0xf5 is only a placeholder. The `R_X86_64_PLT32` relocation records exactly where that operand sits and which symbol it must reach, so what is still unresolved is the final address of the definition (it lives in ast.o). At final link, after the linker lays out all sections and resolves the symbol, it patches the recorded location with the correct PC-relative displacement.
 
 ### Q3.2 — Incremental rebuild prediction
 
