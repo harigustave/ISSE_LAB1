@@ -142,3 +142,19 @@ Test(parser, first_ast_allocation_failure)
     cr_assert_eq(rbc_alloc_test_live_count(), 0);
     rbc_alloc_test_reset();
 }
+
+Test(parser, third_ast_allocation_failure_releases_partial_state)
+{
+    struct rbc_ast *root = NULL;
+    struct rbc_parse_result result;
+
+    rbc_alloc_test_reset();
+    rbc_alloc_test_fail_after(2);
+    result = rbc_parse("2*3", 3, &root);
+    cr_assert_eq(result.status, RBC_PARSE_NOMEM);
+    cr_assert_eq(result.error_offset, 0);
+    cr_assert_null(root);
+    cr_assert_eq(rbc_alloc_test_attempt_count(), 3);
+    cr_assert_eq(rbc_alloc_test_live_count(), 0);
+    rbc_alloc_test_reset();
+}
