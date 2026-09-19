@@ -288,7 +288,7 @@ Compare the two new public-API multiplication contract-coverage tests with your 
 
 **Your answer:**
 
-<!-- Answer in 3–5 sentences. Distinguish public-contract evidence from sanitizer evidence and include one limit of the repaired sanitizer run. -->
+The two Criterion cases cover the public evaluator contract at both multiplication overflow boundaries (a large positive product and INT64_MIN * -1 built through the AST API): they pin `RBC_EVAL_OVERFLOW` with an unchanged caller variable, and they passed both before and after the repair, because an unsanitized compute-then-check implementation returns the same outward status. The sanitized run covers something different, the C-language legality of the exercised path: before the repair it reported the signed-overflow runtime error at eval.c:90, and after the repair the same fixture produces only the application diagnostic with status 1 and no UBSan finding, because the multiply now executes only after representability is established. What changed is therefore not observable behavior but the elimination of undefined behavior on the way to it. One claim the repaired sanitizer run does not justify: it proves the absence of arithmetic UB only on the paths these inputs exercised, not for all expressions, operators, or operand combinations the calculator can evaluate.
 
 ## 8. Investigation 4 — deterministic allocation failure and Memcheck
 
