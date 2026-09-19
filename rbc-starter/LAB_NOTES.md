@@ -348,7 +348,7 @@ Why do the allocation-attempt count and live-allocation count make your parser r
 
 **Your answer:**
 
-<!-- Answer in 3–4 sentences. Explain the two counters, what Valgrind adds, and the limit of one clean deterministic path. -->
+The attempt count (`attempt_count == 3`) proves the test really reached the intended partial state, the third allocation while binding `2*3`'s operands, rather than failing earlier or never failing; the live count (`live_count == 0`) then turns the cleanup obligation itself into an assertion, so the test discriminates retained ownership even though the outward NOMEM status and NULL root are identical in the defective and repaired versions. That makes the regression permanent and self-contained, with no dependence on any particular Valgrind message. The repaired `make valgrind` adds independent, allocator-level evidence: Memcheck observed every allocation and free in the probe process and found zero errors and zero leaked blocks, confirming the seam counters against an external observer. A clean result on this one deterministic path does not prove allocation-failure cleanup is correct for every other failure point (other attempt indices, other expressions, other partial shapes); it is evidence about exactly the path exercised.
 
 ## 9. Final verification and authored-change review
 
