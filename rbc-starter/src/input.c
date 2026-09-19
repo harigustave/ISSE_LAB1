@@ -39,8 +39,19 @@ rbc_input_read_line(FILE *stream, char *buffer, size_t capacity)
         }
 
         buffer[0] = '\0';
-        /* TODO(student): discard the rest of this logical line through newline/EOF,
-         * returning input error instead if a true stream error occurs. */
+        for (;;) {
+            int discarded = fgetc(stream);
+
+            if (discarded == '\n') {
+                break;
+            }
+            if (discarded == EOF) {
+                if (ferror(stream)) {
+                    return (struct rbc_input_result){RBC_INPUT_ERROR, 0};
+                }
+                break;
+            }
+        }
         return (struct rbc_input_result){RBC_INPUT_TOO_LONG, 0};
     }
 }
