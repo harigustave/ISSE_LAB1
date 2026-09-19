@@ -363,15 +363,15 @@ Complete a compact matrix for the final checks you actually ran: warning-clean n
 
 | Check | Claim supported | Important limit |
 | --- | --- | --- |
-| Warning-clean normal build |  |  |
-| Full normal tests |  |  |
-| Bounded-input whole-program recovery |  |  |
-| Normal whole-program overflow behavior |  |  |
-| Sanitized tests / exercised runs |  |  |
-| Deterministic Valgrind run |  |  |
-| Focused authored-change review |  |  |
+| Warning-clean normal build | From a clean state the sources compile and link under the strict C17 flags with no diagnostics | Compile-time cleanliness says nothing about runtime behavior or contracts |
+| Full normal tests (51 Criterion + CLI, status 0) | Every stated module contract and process-boundary case covered by the suite holds, including the five added regressions | Only behaviors the suite encodes are checked; UB and leaks can hide behind green tests |
+| Bounded-input whole-program recovery (257-byte case) | The shipped executable discards a rejected overlong line and evaluates the next expression (stdout 5, line-1 diagnostic, status 1) | One input shape at one capacity; it does not localize failures to a module |
+| Normal whole-program overflow behavior (fixture, status 1) | The application-level overflow contract holds end to end: diagnostic on stderr, recoverable status | A normal run cannot establish absence of signed-overflow UB on that path |
+| Sanitized tests / exercised runs | On the exercised paths the repaired code performs no invalid C arithmetic and no invalid memory access (suite 51/51, fixture now clean of UBSan findings) | Evidence covers only exercised paths; unexercised expressions remain unproven |
+| Deterministic Valgrind run (0 errors) | On the selected fail_after(2) path every acquired AST resource is released; the retained-ownership leak is gone | One deterministic failure point; other allocation-failure points are not exercised |
+| Focused authored-change review | Production changes are confined to src/input.c, src/parser.c, src/eval.c plus the designated test files and this notebook; APIs, seams, and language behavior otherwise unchanged | Review shows scope and intent, not correctness; it cannot replace the executed checks |
 
 **Why these checks are complementary:**
 
-<!-- End with 1–2 sentences. Do not paste the final logs. -->
+Each check answers a question the others cannot: the build proves compilability, tests prove encoded contracts, whole-program runs prove integrated process behavior, the sanitizer proves C-language legality on exercised paths, Memcheck proves resource release on the selected path, and the change review proves the work stayed focused. No single green result implies any of the others, which is why the final verification must integrate all of them.
 
