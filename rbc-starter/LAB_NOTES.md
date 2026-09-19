@@ -301,23 +301,23 @@ Before running Memcheck, use the resource probe’s configured failure point to 
 
 **Selected allocation attempt:**
 
-<!-- Identify the selected attempt. -->
+Attempt 3: with `rbc_alloc_test_fail_after(2)` the first two allocations succeed and the third returns NULL, which while parsing `"2*3"` is the binary MULTIPLY parent requested through `rbc_ast_create_binary_take` (attempt 1 = integer node 2, attempt 2 = integer node 3).
 
 **Partial ownership state:**
 
 | Resource / object | Acquired before failure? | Current owner at the failure point | Ownership transferred? | Cleanup obligation |
 | --- | --- | --- | --- | --- |
-|  |  |  |  |  |
-
-<!-- Add or remove blank rows as needed for the partial state you predict. -->
+| Integer AST node 2 (`left`) | Yes, attempt 1 | Parser temporary state (parse_multiplicative's `left`) | No, the failed `*_take` consumes nothing | Parser must destroy it before returning NOMEM |
+| Integer AST node 3 (`right`) | Yes, attempt 2 | Parser temporary state (parse_multiplicative's `right`) | No, same failed constructor | Parser must destroy it before returning NOMEM |
+| Binary MULTIPLY parent | No, attempt 3 failed | Never existed | n/a | None |
 
 **Predicted parser status and returned-root state:**
 
-<!-- State the predicted public result. -->
+`rbc_parse` returns `RBC_PARSE_NOMEM` with `error_offset == 0`, transfers nothing, and leaves `*out_ast` NULL.
 
 **Cleanup condition before unsuccessful return:**
 
-<!-- State the required cleanup condition, then add 1–2 sentences if needed to explain the table. -->
+Every temporary AST node acquired during the failed parse (both integer nodes) must be released exactly once before rbc_parse returns, so the test-seam live-allocation count must be back to 0. The outward NOMEM status and NULL root alone cannot show this, because the parser can report the right status while still retaining nodes it owns; that is exactly what the live count and Memcheck are for.
 
 ### Q8.2 — Use Memcheck provenance to diagnose ownership
 
