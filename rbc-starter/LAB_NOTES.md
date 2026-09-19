@@ -329,12 +329,15 @@ Include only the Memcheck lines needed to identify the still-live allocation and
 **Selected Memcheck evidence:**
 
 ```text
-<Paste only the 1–4 lines needed to identify the still-live allocation and its acquisition provenance.>
+32 bytes in 1 blocks are definitely lost in loss record 1 of 1
+   by 0x...: rbc_ast_create_integer (ast.c:22)
+   by 0x...: parse_multiplicative (parser.c:155)   [the parse of `left`]
+   by 0x...: rbc_parse (parser.c:270)
 ```
 
 **Ownership/cleanup interpretation:**
 
-<!-- In 3–5 sentences, trace acquire → attempted transfer → failure → retained ownership and justify the responsible component without naming the patch. -->
+The still-live allocation is the first integer node (the literal 2), acquired as parse_multiplicative's `left` on allocation attempt 1. The parser then attempted to transfer it into `rbc_ast_create_binary_take` on attempt 3, but that constructor's allocation failed, and by the `*_take` contract a failed constructor returns NULL and consumes nothing, so ownership of `left` (and of `right`) remained with the parser. The parser's NOMEM unwind on this path releases only part of that retained state, which is why one node is still live when rbc_parse returns its otherwise-correct NOMEM/NULL result; the cleanup obligation therefore sits in the parser's multiplicative-level failure path. Changing constructor ownership semantics is ruled out as a repair: the provenance shows the leak arises after the constructor already returned NULL (in the caller's unwind), the public ast.h contract explicitly promises failure-consumes-nothing, and other call sites (the additive level, unary) already rely on that promise by destroying their retained children themselves.
 
 ### Q8.3 — Why the deterministic cleanup regression discriminates
 
