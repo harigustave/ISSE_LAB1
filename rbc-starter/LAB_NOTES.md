@@ -90,12 +90,12 @@ Before running the two `make -n -W` experiments, fill in your prediction for a c
 
 | Changed file | Predicted recompilations / relink | Observed selection |
 | --- | --- | --- |
-| `src/lexer.c` | Only lexer.o recompiles (the .c is a prerequisite of just its own object), then rbc relinks |  |
-| `include/rbc/lexer.h` | lexer.o and parser.o recompile (both TUs include rbc/lexer.h, per their generated .d files), then rbc relinks |  |
+| `src/lexer.c` | Only lexer.o recompiles (the .c is a prerequisite of just its own object), then rbc relinks |Only `-c src/lexer.c`, then relink of build/normal/bin/rbc |
+| `include/rbc/lexer.h` | lexer.o and parser.o recompile (both TUs include rbc/lexer.h, per their generated .d files), then rbc relinks | `-c src/lexer.c` and `-c src/parser.c`, then relink of build/normal/bin/rbc |
 
 **Explanation:**
 
-<!-- In 2–3 sentences, use the generated .d files to explain why the two cases differ. -->
+The generated .d files record each object's true prerequisites: `lexer.d` lists `build/normal/obj/lexer.o: src/lexer.c include/rbc/lexer.h`, while `parser.d` lists `parser.o: src/parser.c include/rbc/parser.h include/rbc/ast.h include/rbc/lexer.h`. A newer `src/lexer.c` therefore invalidates only lexer.o, but a newer `include/rbc/lexer.h` invalidates every object whose .d names it (lexer.o and parser.o); main.o does not include lexer.h, so it is untouched. In both cases the executable depends on its objects, so a relink follows the recompilations, and no `make clean` is ever needed for a correct incremental build.
 
 ## 4. Testing boundaries and process behavior
 
