@@ -184,6 +184,27 @@ Test(eval, minimum_remainder_negative_one_overflow)
     rbc_ast_destroy(root);
 }
 
+Test(eval, large_positive_multiplication_overflow)
+{
+    struct rbc_ast *root =
+        make_binary(RBC_BINARY_MULTIPLY, INT64_C(3037000500), INT64_C(3037000500));
+    int64_t value = 1234;
+
+    cr_assert_eq(rbc_eval(root, &value), RBC_EVAL_OVERFLOW);
+    cr_assert_eq(value, 1234);
+    rbc_ast_destroy(root);
+}
+
+Test(eval, minimum_times_negative_one_overflow)
+{
+    struct rbc_ast *root = make_binary(RBC_BINARY_MULTIPLY, INT64_MIN, -1);
+    int64_t value = 1234;
+
+    cr_assert_eq(rbc_eval(root, &value), RBC_EVAL_OVERFLOW);
+    cr_assert_eq(value, 1234);
+    rbc_ast_destroy(root);
+}
+
 Test(eval, output_unchanged_on_failure)
 {
     struct rbc_ast *root = make_binary(RBC_BINARY_DIVIDE, 10, 0);
