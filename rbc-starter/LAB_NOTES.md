@@ -130,12 +130,12 @@ Before adding or running the recovery regression, use buffer capacity `4` and st
 
 | Call | Predicted status | Predicted length | Predicted buffer contents | Predicted stream position after the call |
 | --- | --- | --- | --- | --- |
-| First call |  |  |  |  |
-| Second call |  |  |  |  |
+| First call | `RBC_INPUT_TOO_LONG` | 0 | `""` (empty, `buffer[0] == '\0'`) | Just past the newline of `abcd\n`, i.e. at the `x` that starts the second logical line |
+| Second call | `RBC_INPUT_LINE` | 2 | `"xy"` (newline consumed but excluded) | Just past the newline of `xy\n`, i.e. at EOF |
 
 **Capacity-boundary justification:**
 
-<!-- One sentence. -->
+With capacity 4 at most capacity - 1 = 3 payload bytes fit (the buffer also needs the terminating NUL), so the 4-byte payload `abcd` makes the first logical line overlong, and the contract requires the whole rejected line, through its newline, to be discarded before the next call begins.
 
 ### Q5.2 — Diagnose the failed recovery postcondition
 
