@@ -165,7 +165,7 @@ Explain why your two-call recovery regression adds discriminatory value beyond t
 
 **Your answer:**
 
-<!-- Answer in 3–4 sentences. Do not paste the test source or full command output. -->
+The existing input tests each make a single call, so they prove overlong detection (first-call status, length, empty buffer) but say nothing about the stream state a TOO_LONG return leaves behind; my regression's second call is what turns the "discarded through newline" postcondition into a checked, permanent invariant, and it stayed red on the starter while every single-call test stayed green. The 257-byte whole-program check then establishes the same recovery at the process boundary with the real RBC_LINE_CAPACITY of 256: stdout `5` only, the line-1 too-long diagnostic on stderr, and exit status 1, proving main's loop, line accounting, and status reporting integrate correctly with the repaired module. The unit regression alone could not show that no fragment of the rejected line reaches the parser as a separate expression in the shipped executable; the executable check alone could not localize a failure to the input module. Together they cover both the contract and its integration.
 
 ## 6. Investigation 2 — additive associativity with GDB
 
