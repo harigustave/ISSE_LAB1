@@ -178,6 +178,7 @@ parse_multiplicative(struct parser_state *state, struct rbc_ast **out_ast)
 
         parent = rbc_ast_create_binary_take(op, left, right);
         if (parent == NULL) {
+            rbc_ast_destroy(left);
             rbc_ast_destroy(right);
             state->error_offset = 0;
             return RBC_PARSE_NOMEM;
