@@ -211,18 +211,26 @@ From the runtime state you inspected at `rbc_eval`, reconstruct the observed AST
 **Observed AST/grouping sketch:**
 
 ```text
-<draw the structure you observed here>
+Observed at rbc_eval for "20 - 5 - 3":   20 - (5 - 3)   [right-associative]
+
+        (-)                (printed result: 18)
+       /   \
+     20     (-)
+           /   \
+          5     3
 ```
 
 **Selected field values, if needed:**
 
 ```text
-<Include only the few values needed to support the sketch. Do not paste the debugger transcript.>
+*root                    = {kind = RBC_AST_BINARY, binary = {op = RBC_BINARY_SUBTRACT, ...}}
+*root->data.binary.left  = {kind = RBC_AST_INTEGER, integer = 20}
+*root->data.binary.right = {kind = RBC_AST_BINARY, binary = {op = RBC_BINARY_SUBTRACT, ...}}
 ```
 
 **Interpretation:**
 
-<!-- In 2–4 sentences, connect the observed structure to your hypotheses and repair responsibility. -->
+The root's right child is itself a subtraction while the left child is the bare integer 20, so the structure reaching the evaluator is already the wrongly grouped 20 - (5 - 3); this supports the parser-representation hypothesis and rules out the evaluator hypothesis, since rbc_eval merely borrows whatever tree it is given and 18 is the faithful value of this tree. The defect therefore lives where the additive-level tree shape is constructed, and the repair belongs to src/parser.c; the evaluator must not be changed to compensate for a representation defect established elsewhere.
 
 ### Q6.3 — Executable regression and debugger limits
 
