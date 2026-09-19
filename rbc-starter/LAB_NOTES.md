@@ -64,7 +64,7 @@ Before inspecting `build/normal/obj/parser.o`, predict whether a valid relocatab
 
 **Your prediction:**
 
-<!-- One sentence. Write this before the inspection. -->
+Yes: a relocatable object is allowed to call functions defined in other translation units, because the assembler emits the call with a placeholder and records an undefined symbol plus a relocation entry telling the linker where to patch the real address later.
 
 **Selected evidence:**
 
