@@ -86,15 +86,12 @@ eval_node(const struct rbc_ast *node, int64_t *out_value)
             *out_value = left - right;
             return RBC_EVAL_OK;
 
-        case RBC_BINARY_MULTIPLY: {
-            int64_t product = left * right;
-
+        case RBC_BINARY_MULTIPLY:
             if (multiplication_overflows(left, right)) {
                 return RBC_EVAL_OVERFLOW;
             }
-            *out_value = product;
+            *out_value = left * right;
             return RBC_EVAL_OK;
-        }
 
         case RBC_BINARY_DIVIDE:
             if (right == 0) {
