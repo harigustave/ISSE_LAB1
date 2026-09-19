@@ -256,10 +256,10 @@ Before running the sanitizer configuration on `tests/fixtures/sanitize.in`, sepa
 
 | Question | Answer | Brief justification |
 | --- | --- | --- |
-| Mathematical product representable in `int64_t`? |  |  |
-| Required `rbc_eval` status if it is not representable? |  |  |
-| May the implementation execute an overflowing signed multiplication first and decide the status afterward? |  |  |
-| Sanitizer class relevant to that C-language issue? |  |  |
+| Mathematical product representable in `int64_t`? | No | 3037000500^2 = 9223372037000250000, which exceeds INT64_MAX = 9223372036854775807 (3037000500 is just above the integer square root of INT64_MAX) |
+| Required `rbc_eval` status if it is not representable? | `RBC_EVAL_OVERFLOW`, with `*out_value` unchanged | eval.h: on every evaluation failure the output variable is untouched; main then reports the line-level integer overflow diagnostic and the process uses recoverable status 1 |
+| May the implementation execute an overflowing signed multiplication first and decide the status afterward? | No | Signed integer overflow is undefined behavior in C, not a wrapping operation that can be inspected afterward; the implementation must establish representability before executing the multiply, so compute-then-check is invalid even when the outward status looks right |
+| Sanitizer class relevant to that C-language issue? | UBSan (UndefinedBehaviorSanitizer), signed-integer-overflow check | UBSan diagnoses invalid C operations on the exercised path; ASan targets memory-safety classes and is not the tool for arithmetic UB |
 
 ### Q7.2 — Interpret the UBSan finding
 
