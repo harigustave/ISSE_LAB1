@@ -82,6 +82,12 @@ run_case "final line without newline" \
     '' \
     0
 
+run_case "mixed additive left associativity" \
+    '10 - 2 + 3\n' \
+    '11\n' \
+    '' \
+    0
+
 case_number=$((case_number + 1))
 printf '' >"$tmpdir/expected.out"
 printf 'usage: rbc\n' >"$tmpdir/expected.err"
