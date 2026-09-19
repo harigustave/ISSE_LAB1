@@ -179,21 +179,27 @@ Before running the associativity case, write the required grouping and result fo
 **Required grouping / sketch:**
 
 ```text
-<write or sketch your predicted grouping here>
+Left-associative additive level: 20 - 5 - 3  ==  (20 - 5) - 3
+
+        (-)
+       /   \
+     (-)    3
+    /   \
+  20     5
 ```
 
 **Predicted result:**
 
-<!-- Write the predicted result here before running the case. -->
+12 (whereas a wrongly right-associative grouping 20 - (5 - 3) would print 18).
 
 **Competing hypotheses:**
 
-- <!-- Hypothesis 1 -->
-- <!-- Hypothesis 2 -->
+- Hypothesis 1 (parser/representation): the parser builds a right-associative tree at the additive level, so a structurally wrong AST like 20 - (5 - 3) reaches a correct evaluator.
+- Hypothesis 2 (evaluator): the parser builds the correct left-associative AST, but rbc_eval computes the subtraction wrongly (for example swaps operands or mis-handles chained nodes), so a correct tree produces a wrong value.
 
 **Runtime observation that could distinguish them:**
 
-<!-- One sentence. -->
+Inspecting the AST root that actually reaches rbc_eval for this execution: a root whose right child is the subtree (5 - 3) confirms hypothesis 1, while a correctly grouped root ((20 - 5) left, 3 right) with a wrong printed value confirms hypothesis 2.
 
 ### Q6.2 — Interpret the AST state you observed
 
