@@ -88,4 +88,20 @@ Test(input, one_extra_payload_byte_is_too_long)
     fclose(stream);
 }
 
-/* TODO(student): add the overlong-line recovery regression required by the input contract. */
+Test(input, overlong_line_recovery_across_calls)
+{
+    char buffer[4] = "xxx";
+    FILE *stream = stream_with_bytes("abcd\nxy\n");
+    struct rbc_input_result first = rbc_input_read_line(stream, buffer, sizeof buffer);
+
+    cr_assert_eq(first.status, RBC_INPUT_TOO_LONG);
+    cr_assert_eq(first.length, 0);
+    cr_assert_str_eq(buffer, "");
+
+    struct rbc_input_result second = rbc_input_read_line(stream, buffer, sizeof buffer);
+
+    cr_assert_eq(second.status, RBC_INPUT_LINE);
+    cr_assert_eq(second.length, 2);
+    cr_assert_str_eq(buffer, "xy");
+    fclose(stream);
+}
