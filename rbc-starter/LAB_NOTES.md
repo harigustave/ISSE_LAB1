@@ -110,12 +110,12 @@ Choose one supplied Criterion test and one supplied CLI case. For each, state th
 
 | Chosen supplied case | Boundary exercised | Contract / returned or process state checked | What a failure at this boundary would tell you |
 | --- | --- | --- | --- |
-| Criterion test:  |  |  |  |
-| CLI case:  |  |  |  |
+| Criterion test: `Test(input, one_extra_payload_byte_is_too_long)` | Public C module interface: an in-process call to `rbc_input_read_line` | With capacity 4 and stream `"abcd\n"`, the returned struct must be `RBC_INPUT_TOO_LONG` with `length == 0` and an empty NUL-terminated buffer, per input.h | The input module itself violates its stated public contract; the defect is localized to that component, independent of parser/eval/main |
+| CLI case: "evaluation recovery" (`8 / 0\n9\n`) | External process boundary: argv + stdin in, stdout + stderr + exit status out | stdout is exactly `9\n`, stderr is exactly `rbc: line 1: division by zero\n`, and the process exits with status 1 (recoverable line error observed before normal EOF) | The integrated whole-program behavior visible to a user is wrong somewhere along input -> parse -> eval -> report, but it does not localize which component is responsible |
 
 **Evidence-channel interpretation:**
 
-<!-- In 2–3 sentences, explain why process status, a failed test, and a UBSan/Memcheck diagnostic are not interchangeable evidence. -->
+A process status is the application's own public verdict, and observing it (I ran the `8 / 0` case: status 1, stdout `9`, the diagnostic on stderr) says nothing about how the result was computed. A failed test says a specific stated contract at a specific boundary was violated, which localizes responsibility to whatever that boundary isolates. A UBSan or Memcheck finding reports an invalid C-language operation or resource state that can occur even while statuses and tests all look right, so none of the three channels can substitute for another; they answer different questions.
 
 ## 5. Investigation 1 — bounded input recovery
 
