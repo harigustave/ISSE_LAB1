@@ -90,8 +90,8 @@ Before running the two `make -n -W` experiments, fill in your prediction for a c
 
 | Changed file | Predicted recompilations / relink | Observed selection |
 | --- | --- | --- |
-| `src/lexer.c` |  |  |
-| `include/rbc/lexer.h` |  |  |
+| `src/lexer.c` | Only lexer.o recompiles (the .c is a prerequisite of just its own object), then rbc relinks |  |
+| `include/rbc/lexer.h` | lexer.o and parser.o recompile (both TUs include rbc/lexer.h, per their generated .d files), then rbc relinks |  |
 
 **Explanation:**
 
