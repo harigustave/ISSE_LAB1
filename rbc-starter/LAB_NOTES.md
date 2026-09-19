@@ -271,12 +271,13 @@ Include only the smallest UBSan excerpt needed to identify the exercised operati
 **Selected UBSan evidence:**
 
 ```text
-<Paste only the 1–3 diagnostic lines needed to identify the operation and source context.>
+src/eval.c:90:21: runtime error: signed integer overflow:
+3037000500 * 3037000500 cannot be represented in type 'long int'
 ```
 
 **Interpretation:**
 
-<!-- Explain the C-language failure, how it differs from the application-level overflow condition, and what UBSan adds in 3–4 sentences. -->
+UBSan reports that the program actually executed an invalid C operation: a signed 64-bit multiplication whose mathematical result is not representable, at eval.c line 90 (the `left * right` that runs before `multiplication_overflows` is consulted). The calculator's application-level overflow condition is different: it is the defined, contractual outcome `RBC_EVAL_OVERFLOW` plus the stderr diagnostic and recoverable status 1, which this input must produce even in a fully correct program. The evidence shows the implementation reached that correct-looking outward status by committing undefined behavior first (compute, then check), which an ordinary unsanitized `RBC_EVAL_OVERFLOW` run can never reveal because the observable outputs are identical either way. That discrimination between check-then-compute and compute-then-check on the exercised path is exactly what UBSan adds.
 
 ### Q7.3 — API contract coverage versus sanitizer discrimination
 
