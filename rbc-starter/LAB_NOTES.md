@@ -22,12 +22,36 @@ Using the public headers and `src/main.c`, draw a small ownership/data-flow mode
 **Your ownership/data-flow model:**
 
 ```text
-<draw your success and failure ownership/data-flow model here>
+SUCCESS PATH (one expression, e.g. "2 + 3 * 4"):
+
+stdin ==borrowed stream==> rbc_input_read_line ==fills==> line[] (main's stack
+buffer, borrowed by input; no allocation, no transfer)
+
+line[] ==borrowed bytes==> rbc_parse
+    parser owns ALL temporary AST state while building
+    (nodes from rbc_ast_create_integer / *_take constructors;
+     a successful *_take moves child ownership into the new parent)
+    RBC_PARSE_OK: exactly one root transfers to *out_ast ==> main now owns root
+
+root ==borrowed (const, no retention)==> rbc_eval ==> value + status
+
+main: rbc_ast_destroy(root)   <- the single release point on this path
+main ==> prints value to stdout
+
+FAILURE PATH (unsuccessful parse, e.g. syntax error):
+
+stdin ==> rbc_input_read_line ==> line[]         (same borrows as above)
+line[] ==> rbc_parse
+    parser still owns every temporary node it acquired
+    status != RBC_PARSE_OK: transfers NOTHING, *out_ast stays NULL,
+    parser must release all its temporary AST state before returning
+main: reports the error, destroys nothing (root is NULL), continues
+with the next line (recoverable) or exits 2 (NOMEM)
 ```
 
 **Interpretation:**
 
-<!-- Add 1–2 sentences explaining the key ownership/transfer points in your model. -->
+Input and eval only ever borrow (stream/buffer and a const AST respectively); the single ownership transfer in the whole flow is the one root moved into `*out_ast` on `RBC_PARSE_OK`, after which main is the owner and must call `rbc_ast_destroy` exactly once. On any unsuccessful parse that transfer never happens, so cleanup responsibility for partial construction stays entirely inside the parser, and a failed `*_take` constructor consumes nothing, meaning the parser still owns the children it passed in.
 
 ## 3. Build reasoning: objects, relocations, and incremental dependencies
 
