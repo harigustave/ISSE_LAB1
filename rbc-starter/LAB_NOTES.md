@@ -241,7 +241,7 @@ Your permanent CLI regression uses a mixed additive expression. What public lang
 
 **Your answer:**
 
-<!-- Answer in 3–5 sentences. Focus on the public contract, discrimination, what the passing case establishes, and one limit of the GDB observation. -->
+The CLI case encodes the public language contract that `+` and `-` share one precedence level and associate left, so `10 - 2 + 3` must print `11` with empty stderr and status 0. A mixed chain is what makes it discriminating: the defective right-associative grouping yields `10 - (2 + 3) = 5` while the repaired grouping yields `(10 - 2) + 3 = 11`, whereas a chain of only `+` produces the same value under both groupings and both runs exit 0, so only the printed value separates them. Passing now establishes that the shipped executable, end to end through stdin, parser, evaluator, and stdout, honors that associativity contract permanently, and the case will go red if the tree shape ever regresses. One limit of the GDB observation: it examined the AST for one expression on one execution, so by itself it proves nothing about other operator mixes, other inputs, or that the repair preserved everything else; the full green suite carries that weight.
 
 ## 7. Investigation 3 — signed multiplication with sanitizers
 
