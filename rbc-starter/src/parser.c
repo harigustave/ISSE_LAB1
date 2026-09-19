@@ -213,7 +213,7 @@ parse_additive(struct parser_state *state, struct rbc_ast **out_ast)
         return status;
     }
 
-    if (is_additive(state->token.kind)) {
+    while (is_additive(state->token.kind)) {
         enum rbc_binary_op op = additive_op(state->token.kind);
         struct rbc_ast *right = NULL;
         struct rbc_ast *parent;
@@ -224,7 +224,7 @@ parse_additive(struct parser_state *state, struct rbc_ast **out_ast)
             return status;
         }
 
-        status = parse_additive(state, &right);
+        status = parse_multiplicative(state, &right);
         if (status != RBC_PARSE_OK) {
             rbc_ast_destroy(left);
             return status;
